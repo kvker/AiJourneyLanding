@@ -1,0 +1,101 @@
+---
+import Empty from '../layouts/Empty.astro'
+---
+
+<Empty title="AI导游大师">
+  <div class="w-full h-screen font-sans bg-cover bg-landscape" style="background-image: url(https://www.tailwind-kit.com/images/landscape/2.jpg);">
+    <div class="container flex items-center justify-center flex-1 h-full mx-auto">
+      <div class="w-full max-w-lg">
+        <div class="leading-loose">
+          <form class="max-w-sm p-10 m-auto rounded shadow-xl bg-white/25" id="formLogin">
+            <p class="mb-8 text-2xl font-light text-center text-white">AI导游大师后台管理-登录</p>
+            <div class="mb-2">
+              <div class="relative">
+                <input
+                  type="text"
+                  id="login-with-bg-username"
+                  class="rounded-lg border-transparent flex-1 appearance-none border border-gray-300 w-full py-2 px-4 bg-white text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  placeholder="用户名"
+                />
+              </div>
+            </div>
+            <div class="mb-2">
+              <div class="relative">
+                <input
+                  type="password"
+                  id="login-with-bg-password"
+                  class="rounded-lg border-transparent flex-1 appearance-none border border-gray-300 w-full py-2 px-4 bg-white text-gray-700 placeholder-gray-400 shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent"
+                  placeholder="密码"
+                />
+              </div>
+            </div>
+            <div class="flex items-center justify-between mt-4">
+              <button
+                type="submit"
+                class="py-2 px-4 bg-indigo-600 hover:bg-indigo-700 focus:ring-indigo-500 focus:ring-offset-indigo-200 text-white w-full transition ease-in duration-200 text-center text-base font-semibold shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 rounded-lg"
+              >
+                登录
+              </button>
+            </div>
+            <div class="text-center">
+              <a class="right-0 inline-block text-sm font-light align-baseline text-500 hover:text-gray-800 cursor-pointer">忘记密码？</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</Empty>
+
+<script>
+  import lc from '../libs/lc'
+  //@ts-ignore
+  import md5 from 'md5'
+
+  if (lc.currentUser()) {
+    location.href = import.meta.env.BASE_URL
+  }
+
+  const formLogin = document.querySelector('#formLogin') as HTMLFormElement
+  formLogin.onsubmit = async function (e) {
+    e.preventDefault()
+    try {
+      await doLogin()
+      location.href = import.meta.env.BASE_URL
+    } catch (error: any) {
+      alert(error.rawMessage || error.message)
+    }
+  }
+
+  async function doLogin() {
+    const username = (document.querySelector('#login-with-bg-username') as HTMLInputElement).value
+    const password = (document.querySelector('#login-with-bg-password') as HTMLInputElement).value
+    const user = await lc.login(username, md5(password) as string)
+    const roles = await user.getRoles()
+    const role = roles[0]
+    if (!role) {
+      lc.logout()
+      throw new ReferenceError('无角色, 请重新登录')
+    }
+    const roleName = role.get('name')
+    console.log(roleName)
+    if (roleName === 'attractionOperator' || roleName === 'attractionAdmin') {
+      const aum = await lc.one('AttractionUserMap', (q) => {
+        q.equalTo('user', lc.currentUser())
+        q.include('attraction')
+      })
+      if (aum && aum.get('attraction')) {
+        const attraction = aum.get('attraction').toJSON()
+        localStorage.setItem('attraction', JSON.stringify(attraction))
+      } else {
+        lc.logout()
+        throw new ReferenceError('未绑定景区, 请联系管理人员')
+      }
+    } else {
+      lc.logout()
+      throw new ReferenceError('无权访问, 请重新登录')
+    }
+  }
+</script>
+
+<style></style>

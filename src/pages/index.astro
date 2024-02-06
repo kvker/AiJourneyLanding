@@ -1,0 +1,27 @@
+---
+import Layout from '@/layouts/Layout.astro'
+---
+
+<Layout title="AI导游大师">
+  <div id="app" class="w-full h-full"></div>
+
+  <script is:inline src="//api.tianditu.gov.cn/api?v=4.0&tk=7679c343623ec0339bd308138c672120"></script>
+  <script>
+    import { createApp } from 'vue'
+    import ElementPlus from 'element-plus'
+    import 'element-plus/dist/index.css'
+    import App from '../components/App.vue'
+
+    const app = createApp(App)
+    app.use(ElementPlus)
+    app.mount('#app')
+  </script>
+</Layout>
+
+<style>
+  html,
+  body,
+  #app {
+    height: 100%;
+  }
+</style>

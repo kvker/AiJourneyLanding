@@ -1,0 +1,35 @@
+---
+import Empty from '../layouts/Empty.astro'
+---
+
+<Empty title="经纬度查询">
+  <script is:inline src="//api.tianditu.gov.cn/api?v=4.0&tk=7679c343623ec0339bd308138c672120"></script>
+
+  <div id="mapDiv" style="position:absolute;width:100vw; height:100vh"></div>
+
+  <script>
+    //初始化地图对象
+    var map = new T.Map('mapDiv')
+    var lnglat = new T.LngLat(116.40969, 39.89945)
+    map.centerAndZoom(lnglat, 12)
+
+    map.addEventListener('click', MapClick)
+    function MapClick(e: { lnglat: { lng: number; lat: number } }) {
+      const text = `经度:${e.lnglat.lng}, 纬度:${e.lnglat.lat}`
+      // js原生复制功能
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(() => {
+          alert(text + ' 已复制到剪贴板')
+        })
+      } else {
+        const input = document.createElement('input')
+        input.value = `${e.lnglat.lng},${e.lnglat.lat}`
+        document.body.appendChild(input)
+        input.select()
+        document.execCommand('copy')
+        document.body.removeChild(input)
+        alert(text + ' 已复制到剪贴板')
+      }
+    }
+  </script>
+</Empty>
