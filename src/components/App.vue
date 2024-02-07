@@ -10,7 +10,12 @@ initPrepare()
 </script>
 
 <template>
-  <div>Landing</div>
+  <div>
+    <Homepage />
+    <Solution />
+    <Price />
+    <AboutUs />
+  </div>
 </template>
 
 <style>
